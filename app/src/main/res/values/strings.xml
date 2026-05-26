@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CoughLogger</string>
+    <string name="notif_channel_id">cough_detection</string>
+    <string name="notif_channel_name">Cough Detection</string>
+</resources>
