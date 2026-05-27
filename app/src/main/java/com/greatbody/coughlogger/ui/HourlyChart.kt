@@ -50,8 +50,10 @@ fun HourlyChart(
             Canvas(modifier = Modifier.fillMaxWidth().height(160.dp)) {
                 val w = size.width
                 val h = size.height
-                val topPx = 14f                 // 顶部预留：柱顶数字
-                val labelPx = 34f               // 底部预留：x 轴标签
+                val countTextPx = 9.sp.toPx()
+                val axisTextPx = 10.sp.toPx()
+                val topPx = countTextPx + 6f    // 顶部预留：柱顶数字（字号+余量）
+                val labelPx = axisTextPx + 14f  // 底部预留：x 轴标签
                 val chartH = h - labelPx - topPx
                 val n = counts.size             // 24
                 val slot = w / n
@@ -69,13 +71,13 @@ fun HourlyChart(
 
                 val axisPaint = android.graphics.Paint().apply {
                     color = labelColor.toArgb()
-                    textSize = 10.sp.toPx()
+                    textSize = axisTextPx
                     isAntiAlias = true
                     textAlign = android.graphics.Paint.Align.CENTER
                 }
                 val countPaint = android.graphics.Paint().apply {
                     color = barColor.toArgb()
-                    textSize = 9.sp.toPx()
+                    textSize = countTextPx
                     isAntiAlias = true
                     textAlign = android.graphics.Paint.Align.CENTER
                     isFakeBoldText = true
@@ -92,11 +94,11 @@ fun HourlyChart(
                             topLeft = Offset(x, y),
                             size = Size(barW, barH)
                         )
-                        // 柱顶数字
+                        // 柱顶数字（baseline 始终在柱顶上方 2px，topPx 保证不出界）
                         drawContext.canvas.nativeCanvas.drawText(
                             counts[i].toString(),
                             x + barW / 2,
-                            (y - 2f).coerceAtLeast(countPaint.textSize),
+                            y - 2f,
                             countPaint
                         )
                     } else {
