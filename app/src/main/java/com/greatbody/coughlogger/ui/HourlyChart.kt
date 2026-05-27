@@ -45,49 +45,64 @@ fun HourlyChart(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(140.dp)
+                .height(160.dp)
         ) {
-            Canvas(modifier = Modifier.fillMaxWidth().height(140.dp)) {
+            Canvas(modifier = Modifier.fillMaxWidth().height(160.dp)) {
                 val w = size.width
                 val h = size.height
-                val labelPx = 22f               // 底部标签预留高度
-                val chartH = h - labelPx
+                val topPx = 14f                 // 顶部预留：柱顶数字
+                val labelPx = 34f               // 底部预留：x 轴标签
+                val chartH = h - labelPx - topPx
                 val n = counts.size             // 24
                 val slot = w / n
                 val barW = slot * 0.7f
                 val gap = slot * 0.3f
+                val baselineY = topPx + chartH
 
                 // y 基线
                 drawLine(
                     color = axisColor,
-                    start = Offset(0f, chartH),
-                    end = Offset(w, chartH),
+                    start = Offset(0f, baselineY),
+                    end = Offset(w, baselineY),
                     strokeWidth = 1f
                 )
 
-                val nativePaint = android.graphics.Paint().apply {
+                val axisPaint = android.graphics.Paint().apply {
                     color = labelColor.toArgb()
                     textSize = 10.sp.toPx()
                     isAntiAlias = true
                     textAlign = android.graphics.Paint.Align.CENTER
+                }
+                val countPaint = android.graphics.Paint().apply {
+                    color = barColor.toArgb()
+                    textSize = 9.sp.toPx()
+                    isAntiAlias = true
+                    textAlign = android.graphics.Paint.Align.CENTER
+                    isFakeBoldText = true
                 }
 
                 for (i in 0 until n) {
                     val ratio = counts[i].toFloat() / max
                     val barH = chartH * ratio
                     val x = i * slot + gap / 2
-                    val y = chartH - barH
+                    val y = baselineY - barH
                     if (counts[i] > 0) {
                         drawRect(
                             color = barColor,
                             topLeft = Offset(x, y),
                             size = Size(barW, barH)
                         )
+                        // 柱顶数字
+                        drawContext.canvas.nativeCanvas.drawText(
+                            counts[i].toString(),
+                            x + barW / 2,
+                            (y - 2f).coerceAtLeast(countPaint.textSize),
+                            countPaint
+                        )
                     } else {
-                        // 0 值画一个浅基线方便定位
                         drawRect(
                             color = axisColor.copy(alpha = 0.25f),
-                            topLeft = Offset(x, chartH - 1f),
+                            topLeft = Offset(x, baselineY - 1f),
                             size = Size(barW, 1f)
                         )
                     }
@@ -96,8 +111,8 @@ fun HourlyChart(
                         drawContext.canvas.nativeCanvas.drawText(
                             i.toString(),
                             x + barW / 2,
-                            h - 4f,
-                            nativePaint
+                            h - 6f,
+                            axisPaint
                         )
                     }
                 }
