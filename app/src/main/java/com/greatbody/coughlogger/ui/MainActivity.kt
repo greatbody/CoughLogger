@@ -133,6 +133,22 @@ fun CoughLoggerApp(vm: MainViewModel = viewModel()) {
             ) { Text("清空记录") }
 
             Divider()
+
+            // ===== 时间线（按小时柱状图）=====
+            val selectedDateStart by vm.selectedDateStart.collectAsStateWithLifecycle()
+            val hourly by vm.hourlyCounts.collectAsStateWithLifecycle()
+            DateBar(
+                selectedDateStart = selectedDateStart,
+                onPrev = { vm.shiftSelectedDate(-1) },
+                onNext = { vm.shiftSelectedDate(1) },
+                onToday = { vm.jumpToToday() }
+            )
+            HourlyChart(
+                counts = hourly,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Divider()
             Text("最近记录 (${history.size})", fontWeight = FontWeight.SemiBold)
             LazyColumn(modifier = Modifier.weight(1f)) {
                 lazyItems(items = history, key = { e: CoughEvent -> e.id }) { e ->
@@ -153,6 +169,41 @@ fun CoughLoggerApp(vm: MainViewModel = viewModel()) {
         }
     }
 }
+
+@Composable
+private fun DateBar(
+    selectedDateStart: Long,
+    onPrev: () -> Unit,
+    onNext: () -> Unit,
+    onToday: () -> Unit,
+) {
+    val today = MainViewModel.startOfDay(System.currentTimeMillis())
+    val isToday = selectedDateStart == today
+    val isFuture = selectedDateStart >= today
+    val label = remember(selectedDateStart, isToday) {
+        val s = DATE_SDF.format(Date(selectedDateStart))
+        if (isToday) "$s · 今日" else s
+    }
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        TextButton(onClick = onPrev) { Text("◀ 前一天") }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(label, fontWeight = FontWeight.SemiBold)
+            if (!isToday) {
+                TextButton(
+                    onClick = onToday,
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+                ) { Text("回到今天", fontSize = 12.sp) }
+            }
+        }
+        TextButton(onClick = onNext, enabled = !isFuture) { Text("后一天 ▶") }
+    }
+}
+
+private val DATE_SDF = SimpleDateFormat("yyyy-MM-dd EEE", Locale.getDefault())
 
 @Composable
 private fun EventRow(e: CoughEvent) {

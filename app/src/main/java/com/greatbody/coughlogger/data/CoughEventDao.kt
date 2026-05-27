@@ -19,6 +19,9 @@ interface CoughEventDao {
     @Query("SELECT COUNT(*) FROM cough_events WHERE timestamp >= :sinceMillis")
     fun countSince(sinceMillis: Long): Flow<Int>
 
+    @Query("SELECT * FROM cough_events WHERE timestamp >= :startMillis AND timestamp < :endMillis ORDER BY timestamp ASC")
+    fun observeBetween(startMillis: Long, endMillis: Long): Flow<List<CoughEvent>>
+
     @Query("DELETE FROM cough_events")
     suspend fun deleteAll()
 }
